@@ -9,16 +9,6 @@ inline int toNum(const char& c) {
     return atoi((string() + c).c_str());
 }
 
-template<typename T>
-inline bool noneOf(const vector<T>& items, const T& item) {
-    for (T value : items) {
-        if (item == value) {
-            return false;
-        }
-    }
-    return true;
-}
-
 int getSmallestIndex(const string& input) {
     int smallestNumber = 10;
     int indexToReturn = -1;
