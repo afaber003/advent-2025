@@ -37,59 +37,51 @@ int getSmallestIndex(const string& input) {
     return indexToReturn;
 }
 
+int getLargestIndex(const string& input, int overrideLength = -1) {
+    int smallestNumber = -1;
+    int indexToReturn = -1;
+    for (int i = 0; i < (overrideLength == -1 ? input.length() : (input.length() - overrideLength)); i++) {
+        if (smallestNumber < toNum(input[i])) {
+            smallestNumber = toNum(input[i]);
+            indexToReturn = i;
+        }
+    }
+    return indexToReturn;
+}
+
 string processBatteryGroup(const string& batteryGroup, const int& numberToSelect) {
-    string finalAnswer = {};
+    string finalAnswer = batteryGroup;
 
-    vector<int> largestNumbers = {};
-    for (int i = 0; i < numberToSelect; i++) {
-        int largestNumberSelected = -1;
-        for (int index = 0; index < batteryGroup.length(); index++) {
-            int value = toNum(batteryGroup[index]);
-            if (value > largestNumberSelected && noneOf(largestNumbers, value)) {
-                largestNumberSelected = value;
-            }
-        }
-        largestNumbers.push_back(largestNumberSelected);
-    }
-    sort(largestNumbers.begin(), largestNumbers.end());
-    reverse(largestNumbers.begin(), largestNumbers.end());
-
-    vector<NumberSelected> numberInfos = {};
-//    int amountAdded = 0;
-    for (int numberSelected : largestNumbers) {
-        numberInfos.emplace_back();
-        numberInfos.back().value = numberSelected;
-        for (int i = batteryGroup.length() - 1; i >= 0; i--) {
-            if (toNum(batteryGroup[i]) == numberSelected) {
-                numberInfos.back().indicesAvailable.insert(numberInfos.back().indicesAvailable.begin(), i);
-//                amountAdded++;
-//                if (amountAdded == numberToSelect) goto doneAddingNumbers;
-            }
-        }
+    int indexToStopAt = getLargestIndex(batteryGroup, numberToSelect);
+    int copy = indexToStopAt;
+    for (int i = 0; i < copy; i++) {
+        int indexToRemove = getSmallestIndex(finalAnswer.substr(0, indexToStopAt));
+        finalAnswer = finalAnswer.substr(0, indexToRemove) + finalAnswer.substr(indexToRemove + 1);
+        indexToStopAt--;
+        if (finalAnswer.length() == numberToSelect) break;
     }
 
-doneAddingNumbers:
-    char* finalChars = (char*) calloc(batteryGroup.length(), sizeof(char));
-    for (const auto& numberInfo : numberInfos) {
-        for (auto index : numberInfo.indicesAvailable) {
-            finalChars[index] = to_string(numberInfo.value)[0];
-        }
+    int numberToRemove = finalAnswer.length() - numberToSelect;
+    string substring = batteryGroup.substr(copy+1);
+    // printf("%s\n", substring.c_str());
+    reverse(substring.begin(), substring.end());
+    for (int i = 0; i < numberToRemove; i++) {
+        int smallestIndex = getSmallestIndex(substring);
+        substring = substring.substr(0, smallestIndex) + substring.substr(smallestIndex + 1);
     }
-    for (int i = 0; i < batteryGroup.length(); i++) {
-        if (finalChars[i] > 0) {
-            finalAnswer += finalChars[i];
-        }
-    }
-    free((void*) finalChars);
-    return finalAnswer;
+    finalAnswer = finalAnswer.substr(0, indexToStopAt);
+    reverse(substring.begin(), substring.end());
+    // printf("%s %c %s\n", finalAnswer.c_str(), batteryGroup[copy], substring.c_str());
+
+    return finalAnswer + batteryGroup[copy] + substring;
 }
 
 int main() {
-    ifstream inputFile("/home/afaber003/Desktop/codeStuff/c++/advent-2025/input-3-2.txt");
-    long runningTotal = 0;
+    ifstream inputFile("/Users/afaber003/Desktop/code stuff/c++/advent-2025/input-3-2.txt");
+    long long runningTotal = 0;
     string batteryGroup;
     while (getline(inputFile, batteryGroup)) {
-        runningTotal += atol(processBatteryGroup(batteryGroup, 4).c_str());
+        runningTotal += atoll(processBatteryGroup(batteryGroup, 12).c_str());
     }
-    printf("%ld\n", runningTotal);
+    printf("%lld\n", runningTotal);
 }
